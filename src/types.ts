@@ -9,6 +9,7 @@ export interface Input {
     daysBack?: number;
     geminiApiKey?: string;
     geminiModel?: string;
+    geminiFallbackModels?: string[];
     geminiRequestsPerMinute?: number;
     maxImagesPerVenue?: number;
     mapsMaxCostUsd?: number;

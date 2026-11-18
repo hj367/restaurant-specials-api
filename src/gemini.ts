@@ -150,13 +150,48 @@ function retryDelayMs(body: unknown): number | null {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export class GeminiClient {
+export interface Extractor {
+    readonly model: string;
+    extract(venue: Venue, posts: Post[]): Promise<Extracted[]>;
+}
+
+/**
+ * Tries models in order. Each Gemini model has its own free daily quota, so when one
+ * runs out we move on to the next instead of dropping straight to keywords.
+ */
+export class GeminiPool {
+    private index = 0;
+
+    constructor(private readonly clients: Extractor[]) {}
+
+    get exhausted(): boolean {
+        return this.index >= this.clients.length;
+    }
+
+    /** Returns null once every model's daily quota is used up. */
+    async extract(venue: Venue, posts: Post[]): Promise<{ items: Extracted[]; model: string } | null> {
+        while (this.index < this.clients.length) {
+            const client = this.clients[this.index];
+            try {
+                return { items: await client.extract(venue, posts), model: client.model };
+            } catch (err) {
+                if (!(err instanceof GeminiQuotaExhausted)) throw err;
+                this.index++;
+                const next = this.clients[this.index]?.model;
+                log.warning(`Gemini ${client.model}: daily free quota used up${next ? `; switching to ${next}` : ''}.`);
+            }
+        }
+        return null;
+    }
+}
+
+export class GeminiClient implements Extractor {
     private nextSlot = 0;
     private readonly minIntervalMs: number;
 
     constructor(
         private readonly apiKey: string,
-        private readonly model: string,
+        readonly model: string,
         requestsPerMinute: number,
         private readonly maxImages: number,
     ) {

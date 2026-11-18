@@ -77,9 +77,16 @@
         "geminiModel": {
             "title": "Gemini model",
             "type": "string",
-            "description": "Model ID used to read posts and their photos.",
+            "description": "Model ID used first to read posts and their photos.",
             "editor": "textfield",
-            "default": "gemini-3.8-flash"
+            "default": "gemini-3.5-flash-lite"
+        },
+        "geminiFallbackModels": {
+            "title": "Fallback Gemini models",
+            "type": "array",
+            "description": "Each model has its own free daily quota. When the first model's quota runs out, these are tried in order before falling back to the keyword filter.",
+            "editor": "stringList",
+            "default": ["gemini-3.1-flash-lite", "gemini-3.8-flash"]
         },
         "geminiRequestsPerMinute": {
             "title": "Gemini requests per minute",

@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { facebookKey, normalizeFacebookUrl } from '../src/facebook-url.js';
-import { parseGeminiItems } from '../src/gemini.js';
+import { GeminiPool, GeminiQuotaExhausted, parseGeminiItems } from '../src/gemini.js';
+import type { Extracted, Venue } from '../src/types.js';
 import { classifyByKeywords } from '../src/keywords.js';
 import { extractImageUrls, itemToPost } from '../src/posts.js';
 import { mergeManualPages, placeToVenue } from '../src/venues.js';
@@ -94,4 +95,28 @@ test('parseGeminiItems validates the model output', () => {
     assert.equal(items[1].confidence, 1);
     assert.equal(items[1].date, '2026-11-22');
     assert.deepEqual(parseGeminiItems(null, 2), []);
+});
+
+test('GeminiPool moves to the next model when a daily quota runs out', async () => {
+    const item: Extracted = {
+        postIndex: 0, kind: 'event', title: 'Quiz night', description: null, price: null, days: ['Wednesday'],
+        date: null, startTime: null, endTime: null, validUntil: null, confidence: 0.9,
+    };
+    const calls: string[] = [];
+    const quotaOut = (model: string) => ({ model, extract: async () => { calls.push(model); throw new GeminiQuotaExhausted('per day'); } });
+    const works = (model: string) => ({ model, extract: async () => { calls.push(model); return [item]; } });
+    const venue = { name: 'Test' } as Venue;
+
+    const pool = new GeminiPool([quotaOut('a'), works('b'), works('c')]);
+    assert.deepEqual(await pool.extract(venue, []), { items: [item], model: 'b' });
+    assert.deepEqual(await pool.extract(venue, []), { items: [item], model: 'b' });
+    assert.deepEqual(calls, ['a', 'b', 'b']); // 'a' is not retried once it's out
+
+    const dead = new GeminiPool([quotaOut('x'), quotaOut('y')]);
+    assert.equal(await dead.extract(venue, []), null);
+    assert.equal(dead.exhausted, true);
+
+    const failing = new GeminiPool([{ model: 'z', extract: async () => { throw new Error('boom'); } }]);
+    await assert.rejects(failing.extract(venue, []), /boom/);
+    assert.equal(failing.exhausted, false); // ordinary errors don't burn the model
 });

@@ -3,11 +3,14 @@ import { createHash } from 'node:crypto';
 import { Actor, log } from 'apify';
 
 import { facebookKey } from './facebook-url.js';
-import { GeminiClient, GeminiQuotaExhausted } from './gemini.js';
+import { GeminiClient, GeminiPool } from './gemini.js';
 import { classifyByKeywords } from './keywords.js';
 import { scrapePosts } from './posts.js';
 import type { Extracted, Input, OutputItem, Post, Venue } from './types.js';
 import { discoverMapsVenues, mergeManualPages } from './venues.js';
+
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+const DEFAULT_FALLBACKS = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
 
 await Actor.init();
 
@@ -55,12 +58,16 @@ for (const v of withFacebook) {
 // 3. Pull specials/events out of each venue's posts.
 // Key from the input, or from the Actor's secret environment variable (works for API/scheduled runs too).
 const geminiKey = input.geminiApiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
+const geminiModels = [...new Set([input.geminiModel?.trim() || DEFAULT_MODEL, ...clean(input.geminiFallbackModels ?? DEFAULT_FALLBACKS)])];
 const gemini = geminiKey
-    ? new GeminiClient(geminiKey, input.geminiModel?.trim() || 'gemini-3.8-flash', input.geminiRequestsPerMinute ?? 8, input.maxImagesPerVenue ?? 4)
+    ? new GeminiPool(
+          geminiModels.map((m) => new GeminiClient(geminiKey, m, input.geminiRequestsPerMinute ?? 8, input.maxImagesPerVenue ?? 4)),
+      )
     : null;
 if (!gemini) log.warning('No Gemini API key: using the keyword filter, which misses specials that are only in photos.');
 
-let geminiAvailable = gemini !== null;
+let warnedExhausted = false;
+const modelsUsed: Record<string, number> = {};
 const stats = { venuesWithPosts: 0, posts: 0, found: 0, byGemini: 0, byKeywords: 0, geminiErrors: 0 };
 
 function makeItem(venue: Venue, post: Post, x: Extracted, extractedBy: OutputItem['extractedBy']): OutputItem {
@@ -99,18 +106,20 @@ for (const venue of withFacebook) {
 
     let extracted: Extracted[] | null = null;
     let by: OutputItem['extractedBy'] = 'keywords';
-    if (gemini && geminiAvailable) {
+    if (gemini && !gemini.exhausted) {
         try {
-            extracted = await gemini.extract(venue, posts);
-            by = 'gemini';
-        } catch (err) {
-            if (err instanceof GeminiQuotaExhausted) {
-                geminiAvailable = false;
-                log.warning(`Gemini daily quota used up; switching to the keyword filter for the remaining venues. (${err.message})`);
-            } else {
-                stats.geminiErrors++;
-                log.warning(`Gemini failed for ${venue.name}: ${(err as Error).message}. Using keywords for this venue.`);
+            const result = await gemini.extract(venue, posts);
+            if (result) {
+                extracted = result.items;
+                by = 'gemini';
+                modelsUsed[result.model] = (modelsUsed[result.model] ?? 0) + 1;
+            } else if (!warnedExhausted) {
+                warnedExhausted = true;
+                log.warning('Every Gemini model is out of free quota for today; using the keyword filter for the remaining venues.');
             }
+        } catch (err) {
+            stats.geminiErrors++;
+            log.warning(`Gemini failed for ${venue.name}: ${(err as Error).message}. Using keywords for this venue.`);
         }
     }
     if (extracted === null) {
@@ -133,7 +142,8 @@ const summary = {
     venuesWithFacebook: withFacebook.length,
     venuesFromCache: fromCache,
     ...stats,
-    geminiModel: gemini ? input.geminiModel?.trim() || 'gemini-3.8-flash' : null,
+    geminiModels: gemini ? geminiModels : [],
+    venuesPerGeminiModel: modelsUsed,
 };
 await Actor.setValue('SUMMARY', summary);
 log.info('Done', summary);

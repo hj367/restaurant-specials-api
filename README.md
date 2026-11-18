@@ -40,7 +40,7 @@ https://api.apify.com/v2/acts/dulcet_hawser~restaurant-specials-api/runs/last/da
 
 - Google Maps: about $0.006 per venue (place plus website contacts). Only charged when venues are re-discovered, which is every 30 days by default.
 - Facebook posts: about $0.007 per recent post ($0.005 per post plus $0.002 for the date filter). 100 venues × 5 posts comes to roughly $3.50 at most.
-- Gemini: free tier. One request per venue with posts, rate-limited by *Gemini requests per minute*.
+- Gemini: free tier, with one request per venue that has recent posts. It uses `gemini-3.5-flash-lite` first. Each model has its own small free daily quota (`gemini-3.8-flash` allows only 20 requests a day), so when one runs out the Actor moves on to the *Fallback Gemini models*, and only after that to keywords. You can see your limits at https://aistudio.google.com/rate-limit.
 - Hard caps: *Max Google Maps cost* and *Max Facebook posts cost*.
 
 ## Setup
