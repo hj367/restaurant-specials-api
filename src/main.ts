@@ -53,8 +53,10 @@ for (const v of withFacebook) {
 }
 
 // 3. Pull specials/events out of each venue's posts.
-const gemini = input.geminiApiKey?.trim()
-    ? new GeminiClient(input.geminiApiKey.trim(), input.geminiModel?.trim() || 'gemini-3.8-flash', input.geminiRequestsPerMinute ?? 8, input.maxImagesPerVenue ?? 4)
+// Key from the input, or from the Actor's secret environment variable (works for API/scheduled runs too).
+const geminiKey = input.geminiApiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
+const gemini = geminiKey
+    ? new GeminiClient(geminiKey, input.geminiModel?.trim() || 'gemini-3.8-flash', input.geminiRequestsPerMinute ?? 8, input.maxImagesPerVenue ?? 4)
     : null;
 if (!gemini) log.warning('No Gemini API key: using the keyword filter, which misses specials that are only in photos.');
 

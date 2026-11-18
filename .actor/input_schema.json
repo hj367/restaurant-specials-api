@@ -70,7 +70,7 @@
             "sectionCaption": "Gemini",
             "title": "Gemini API key",
             "type": "string",
-            "description": "Your Google AI Studio API key (aistudio.google.com/apikey). Stored encrypted. Without a key the Actor falls back to a simple keyword filter.",
+            "description": "Your Google AI Studio API key (aistudio.google.com/apikey). Stored encrypted. Leave empty to use the Actor's secret GEMINI_API_KEY environment variable instead. Without any key the Actor falls back to a simple keyword filter.",
             "editor": "textfield",
             "isSecret": true
         },

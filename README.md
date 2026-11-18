@@ -46,8 +46,8 @@ https://api.apify.com/v2/acts/dulcet_hawser~restaurant-specials-api/runs/last/da
 ## Setup
 
 1. In Apify Console, open the Actor, go to **Source** and choose **Git repository** with the URL `https://github.com/hj367/restaurant-specials-api`, then **Build**.
-2. In **Settings**, make sure **Standby** is off. This Actor runs as a normal batch job.
-3. In **Input**, paste your Gemini API key from https://aistudio.google.com/apikey. It's stored encrypted.
+2. In **Settings**, turn off **Server** (Standby), because this Actor runs as a normal batch job. Set the run **Timeout** to 3600 s.
+3. Add your Gemini API key from https://aistudio.google.com/apikey. Under **Source → Environment variables**, add `GEMINI_API_KEY`, tick **Secret**, save and rebuild. This works for API and scheduled runs too. Alternatively, paste it into the *Gemini API key* input field.
 4. Optional: add a weekly **Schedule**.
 
 ## Development
