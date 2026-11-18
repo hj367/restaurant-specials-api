@@ -1,0 +1,13 @@
+{
+    "actorSpecification": 1,
+    "name": "restaurant-specials-api",
+    "title": "Restaurant specials API",
+    "description": "Finds restaurants and bars in an area (Google Maps plus your own Facebook page list), reads their recent Facebook posts and uses Gemini to pull out specials and events.",
+    "version": "0.1",
+    "buildTag": "latest",
+    "input": "./input_schema.json",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    },
+    "dockerfile": "../Dockerfile"
+}

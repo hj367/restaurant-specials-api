@@ -1,0 +1,117 @@
+{
+    "title": "Restaurant specials API input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "areas": {
+            "sectionCaption": "Where to look",
+            "title": "Areas",
+            "type": "array",
+            "description": "Suburbs or towns to search on Google Maps, one per line. Each area is a separate Google Maps search.",
+            "editor": "stringList",
+            "prefill": ["Durbanville", "Bellville", "Brackenfell", "Kraaifontein", "Kuils River", "Parow", "Goodwood", "Plattekloof"],
+            "default": ["Durbanville", "Bellville", "Brackenfell", "Kraaifontein", "Kuils River", "Parow", "Goodwood", "Plattekloof"]
+        },
+        "areaSuffix": {
+            "title": "Area suffix",
+            "type": "string",
+            "description": "Added after each area name for the Google Maps location, e.g. 'Durbanville, South Africa'.",
+            "editor": "textfield",
+            "default": "South Africa"
+        },
+        "searchTerms": {
+            "title": "Google Maps search terms",
+            "type": "array",
+            "description": "What to search for in each area. Each term is a separate search, so more terms means more places (and cost).",
+            "editor": "stringList",
+            "prefill": ["restaurant", "bar"],
+            "default": ["restaurant", "bar"]
+        },
+        "maxPlacesPerSearch": {
+            "title": "Max places per search term per area",
+            "type": "integer",
+            "description": "Google Maps places to collect for each search term in each area.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 200
+        },
+        "extraFacebookPages": {
+            "title": "Extra Facebook pages",
+            "type": "array",
+            "description": "Venue Facebook page URLs to always include, e.g. pages Google Maps misses. One per line.",
+            "editor": "stringList",
+            "default": []
+        },
+        "venueRefreshDays": {
+            "title": "Re-discover venues every (days)",
+            "type": "integer",
+            "description": "The Google Maps venue list is cached and reused for this many days, so weekly runs only pay for Facebook posts. Set 0 to search Google Maps on every run.",
+            "default": 30,
+            "minimum": 0
+        },
+        "postsPerPage": {
+            "sectionCaption": "Facebook posts",
+            "title": "Posts per Facebook page",
+            "type": "integer",
+            "description": "Maximum recent posts to read from each venue's page.",
+            "default": 5,
+            "minimum": 1,
+            "maximum": 50
+        },
+        "daysBack": {
+            "title": "Only posts from the last (days)",
+            "type": "integer",
+            "description": "Ignore posts older than this. Old posts are filtered out by the Facebook scraper, so you don't pay for them.",
+            "default": 14,
+            "minimum": 1,
+            "maximum": 120
+        },
+        "geminiApiKey": {
+            "sectionCaption": "Gemini",
+            "title": "Gemini API key",
+            "type": "string",
+            "description": "Your Google AI Studio API key (aistudio.google.com/apikey). Stored encrypted. Without a key the Actor falls back to a simple keyword filter.",
+            "editor": "textfield",
+            "isSecret": true
+        },
+        "geminiModel": {
+            "title": "Gemini model",
+            "type": "string",
+            "description": "Model ID used to read posts and their photos.",
+            "editor": "textfield",
+            "default": "gemini-3.8-flash"
+        },
+        "geminiRequestsPerMinute": {
+            "title": "Gemini requests per minute",
+            "type": "integer",
+            "description": "One request per venue. Keep this under your free-tier limit.",
+            "default": 8,
+            "minimum": 1,
+            "maximum": 1000
+        },
+        "maxImagesPerVenue": {
+            "title": "Max photos sent to Gemini per venue",
+            "type": "integer",
+            "description": "Many specials are only on the poster photo. The first photo of each post is sent, up to this many per venue.",
+            "default": 4,
+            "minimum": 0,
+            "maximum": 16
+        },
+        "mapsMaxCostUsd": {
+            "sectionCaption": "Cost limits",
+            "title": "Max Google Maps cost per run (USD)",
+            "type": "integer",
+            "description": "Hard cap on what the Google Maps scraper can charge in one run, split across the areas. Only used when venues are re-discovered.",
+            "default": 3,
+            "minimum": 1
+        },
+        "facebookMaxCostUsd": {
+            "title": "Max Facebook posts cost per run (USD)",
+            "type": "integer",
+            "description": "Hard cap on what the Facebook posts scraper can charge in one run.",
+            "default": 5,
+            "minimum": 1
+        }
+    },
+    "required": []
+}

@@ -1,0 +1,30 @@
+{
+    "actorSpecification": 1,
+    "fields": {},
+    "views": {
+        "overview": {
+            "title": "Specials and events",
+            "transformation": {
+                "fields": ["venueName", "area", "kind", "title", "price", "days", "date", "startTime", "postDate", "postUrl", "imageUrl", "confidence", "extractedBy"]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "venueName": { "label": "Venue", "format": "text" },
+                    "area": { "label": "Area", "format": "text" },
+                    "kind": { "label": "Kind", "format": "text" },
+                    "title": { "label": "Title", "format": "text" },
+                    "price": { "label": "Price", "format": "text" },
+                    "days": { "label": "Days", "format": "array" },
+                    "date": { "label": "Date", "format": "text" },
+                    "startTime": { "label": "Starts", "format": "text" },
+                    "postDate": { "label": "Posted", "format": "date" },
+                    "postUrl": { "label": "Post", "format": "link" },
+                    "imageUrl": { "label": "Photo", "format": "image" },
+                    "confidence": { "label": "Confidence", "format": "number" },
+                    "extractedBy": { "label": "Read by", "format": "text" }
+                }
+            }
+        }
+    }
+}

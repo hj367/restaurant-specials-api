@@ -1,0 +1,27 @@
+{
+    "name": "restaurant-specials-api",
+    "version": "0.1.0",
+    "type": "module",
+    "description": "Apify Actor: finds restaurants and bars in an area, reads their recent Facebook posts and pulls out specials and events with Gemini.",
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "dependencies": {
+        "apify": "^3.8.0"
+    },
+    "devDependencies": {
+        "@apify/tsconfig": "^0.2.0",
+        "@types/node": "^22.20.0",
+        "tsx": "^4.23.0",
+        "typescript": "^5.9.3"
+    },
+    "scripts": {
+        "start": "npm run start:dev",
+        "start:prod": "node dist/main.js",
+        "start:dev": "tsx src/main.ts",
+        "build": "tsc",
+        "test": "node --import tsx --test test/*.test.ts"
+    },
+    "author": "hj367",
+    "license": "UNLICENSED"
+}
